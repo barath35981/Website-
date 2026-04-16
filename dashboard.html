@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>FolderHub - Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.9); backdrop-filter: blur(20px);
+      padding: 20px 30px; border-radius: 20px; margin-bottom: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    .header h1 {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-size: 2rem; font-weight: 700;
+    }
+    .user-info { display: flex; align-items: center; gap: 10px; color: #666; }
+    
+    .create-section {
+      background: white; padding: 25px; border-radius: 20px; margin-bottom: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    }
+    .create-section input {
+      padding: 16px 20px; border: 2px solid #e1e5e9; border-radius: 12px;
+      font-size: 1rem; width: 300px; margin-right: 15px;
+    }
+    .create-section input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.1); }
+    .btn { 
+      padding: 16px 24px; border: none; border-radius: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .btn-primary { 
+      background: linear-gradient(135deg, #667eea, #764ba2); color: white; 
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(102,126,234,0.4); }
+    
+    .folders-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+    }
+    
+    .folder-card {
+      background: white; border-radius: 20px; padding: 25px; 
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      transition: all 0.3s ease; position: relative; overflow: hidden;
+      cursor: pointer;
+    }
+    .folder-card:hover {
+      transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+    .folder-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    .folder-title {
+      font-size: 1.3rem; font-weight: 600; color: #333; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .folder-actions {
+      display: flex; gap: 8px; margin-top: 15px; opacity: 0; transition: opacity 0.3s;
+    }
+    .folder-card:hover .folder-actions { opacity: 1; }
+    
+    .btn-sm {
+      padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; border: none;
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-edit { background: #f0f4ff; color: #667eea; }
+    .btn-edit:hover { background: #667eea; color: white; transform: scale(1.05); }
+    .btn-delete { background: #ffebee; color: #e53e3e; }
+    .btn-delete:hover { background: #e53e3e; color: white; transform: scale(1.05); }
+    
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: #888;
+    }
+    .empty-state i { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+    
+    @media (max-width: 768px) {
+      .folders-grid { grid-template-columns: 1fr; }
+      .create-section input { width: 100%; margin-bottom: 15px; }
+      .header { flex-direction: column; gap: 15px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-folder-tree"></i> FolderHub</h1>
+    <div class="user-info">
+      <i class="fas fa-user-circle" style="font-size: 2rem;"></i>
+      <span id="username">Guest</span>
+      <button class="btn btn-primary btn-sm" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </div>
+  
+  <div class="create-section">
+    <input id="fname" placeholder="Name your new folder...">
+    <button class="btn btn-primary" onclick="addFolder()">
+      <i class="fas fa-plus"></i> Create Folder
+    </button>
+  </div>
+  
+  <div class="folders-grid" id="list"></div>
+
+  <script>
+    let folders = JSON.parse(localStorage.getItem("folders")) || [];
+    const username = localStorage.getItem("user") || "Guest";
+    document.getElementById("username").textContent = username;
+
+    function save() {
+      localStorage.setItem("folders", JSON.stringify(folders));
+      show();
+    }
+
+    function addFolder() {
+      let name = document.getElementById("fname").value.trim();
+      if (!name) return alert("Please enter a folder name!");
+      
+      if (folders.includes(name)) {
+        return alert("Folder already exists!");
+      }
+      
+      folders.push(name);
+      document.getElementById("fname").value = "";
+      save();
+    }
+
+    function deleteFolder(name) {
+      if (confirm(`Delete folder "${name}"? This cannot be undone.`)) {
+        folders = folders.filter(f => f !== name);
+        localStorage.removeItem(name);
+        save();
+      }
+    }
+
+    function renameFolder(oldName) {
+      let newName = prompt(`Rename "${oldName}":`, oldName);
+      if (newName && newName.trim()) {
+        newName = newName.trim();
+        if (newName === oldName) return;
+        if (folders.includes(newName)) {
+          return alert("Folder name already exists!");
+        }
+        
+        let data = localStorage.getItem(oldName);
+        if (data) {
+          localStorage.setItem(newName, data);
+          localStorage.removeItem(oldName);
+        }
+        
+        folders = folders.map(f => f === oldName ? newName : f);
+        save();
+      }
+    }
+
+    function openFolder(name) {
+      localStorage.setItem("current", name);
+      // Smooth transition
+      document.body.style.opacity = "0";
+      setTimeout(() => {
+        location.href = "sheet.html";
+      }, 300);
+    }
+
+    function show() {
+      const list = document.getElementById("list");
+      if (folders.length === 0) {
+        list.innerHTML = `
+          <div class="folder-card empty-state">
+            <i class="fas fa-folder-open"></i>
+            <h3>No folders yet</h3>
+            <p>Create your first folder to get started!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      list.innerHTML = folders.map(f => `
+        <div class="folder-card" onclick="openFolder('${f}')">
+          <div class="folder-title">
+            <i class="fas fa-folder" style="color: #ffd166; font-size: 1.5rem;"></i>
+            ${f}
+          </div>
+          <div class="folder-actions">
+            <button class="btn-sm btn-edit" onclick="event.stopPropagation(); renameFolder('${f}');" title="Rename">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-sm btn-delete" onclick="event.stopPropagation(); deleteFolder('${f}');" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function logout() {
+      if (confirm("Logout and return to login?")) {
+        localStorage.removeItem("user");
+        location.href = "index.html";
+      }
+    }
+
+    // Enter key support
+    document.getElementById("fname").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") addFolder();
+    });
+
+    // Initialize
+    show();
+  </script>
+</body>
+</html>
