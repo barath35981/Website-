@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>FolderHub - Secure Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      animation: float 20s infinite linear;
+    }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    
+    .login-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 3rem;
+      border-radius: 24px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      animation: slideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .logo { font-size: 2.5rem; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; }
+    .title { color: #333; margin-bottom: 2rem; font-weight: 600; font-size: 1.5rem; }
+    
+    .input-group {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    .input-group input {
+      width: 100%; padding: 16px 20px; border: 2px solid #e1e5e9; border-radius: 12px;
+      font-size: 1rem; transition: all 0.3s ease; background: rgba(255,255,255,0.8);
+    }
+    .input-group input:focus {
+      outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+      transform: translateY(-2px);
+    }
+    .input-group i { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #888; }
+    
+    .login-btn {
+      width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600;
+      cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .login-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(102,126,234,0.4); }
+    .login-btn:active { transform: translateY(-1px); }
+    
+    .particles {
+      position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 0;
+    }
+    .particle {
+      position: absolute; width: 4px; height: 4px; background: rgba(255,255,255,0.5);
+      border-radius: 50%; animation: floatParticle 15s infinite linear;
+    }
+  </style>
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+  
+  <div class="login-container">
+    <div style="text-align: center;">
+      <div class="logo"><i class="fas fa-folder-open"></i> FolderHub</div>
+      <h2 class="title">Welcome Back</h2>
+    </div>
+    
+    <div class="input-group">
+      <input id="user" placeholder="Username" required>
+      <i class="fas fa-user"></i>
+    </div>
+    
+    <div class="input-group">
+      <input id="pass" type="password" placeholder="Password" required>
+      <i class="fas fa-lock"></i>
+    </div>
+    
+    <button class="login-btn" onclick="login()">
+      <i class="fas fa-arrow-right"></i> Enter Dashboard
+    </button>
+  </div>
+
+  <script>
+    // Floating particles animation
+    function createParticles() {
+      const particles = document.getElementById('particles');
+      for(let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        particles.appendChild(particle);
+      }
+    }
+    
+    function login() {
+      const u = document.getElementById('user').value;
+      const p = document.getElementById('pass').value;
+      
+      if (u && p) {
+        localStorage.setItem("user", u);
+        document.querySelector('.login-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        setTimeout(() => {
+          location.href = "dashboard.html";
+        }, 800);
+      } else {
+        alert("Please enter both username and password!");
+      }
+    }
+    
+    // Enter to login
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') login();
+    });
+    
+    createParticles();
+  </script>
+</body>
+      </html>
